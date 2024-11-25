@@ -23,6 +23,9 @@ public class TestGroupCommand implements Runnable{
         System.out.println("结束...");
     }
 
+    /**
+     * 使用内部类做为组命令，通过主命令来调用实现引导式提示的效果
+     */
     @CommandLine.Command(name = "mainTemplate")
     @Data
     public static class MainTemplateCommand implements Runnable{
