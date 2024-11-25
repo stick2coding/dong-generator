@@ -16,5 +16,23 @@ public class DataModel {
     /**
      * 核心模板
      */
-    private MainTemplate mainTemplate;
+    public MainTemplate mainTemplate = new MainTemplate();
+
+    /**
+     * 静态内部类标识分组
+     */
+    @Data
+    public static class MainTemplate {
+        /**
+         * 作者名称
+         */
+        private String author = "sunbin";
+
+        /**
+         * 输出信息
+         */
+        private String outputText = "sum =";
+    }
 }
+
+

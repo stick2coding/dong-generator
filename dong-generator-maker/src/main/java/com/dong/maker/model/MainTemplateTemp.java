@@ -3,7 +3,7 @@ package com.dong.maker.model;
 /**
  * 核心模板
  */
-public class MainTemplate {
+public class MainTemplateTemp {
     /**
      * 作者名称
      */

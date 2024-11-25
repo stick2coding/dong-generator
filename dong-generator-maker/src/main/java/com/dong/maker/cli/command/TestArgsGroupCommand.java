@@ -1,9 +1,6 @@
 package com.dong.maker.cli.command;
 
-import cn.hutool.core.bean.BeanUtil;
-import com.dong.maker.generator.file.FileGenerator;
-import com.dong.maker.model.DataModel;
-import com.dong.maker.model.MainTemplate;
+import com.dong.maker.model.MainTemplateTemp;
 import lombok.Data;
 import picocli.CommandLine;
 
@@ -14,7 +11,7 @@ public class TestArgsGroupCommand implements Runnable {
     private boolean loop;
 
     @CommandLine.ArgGroup(exclusive = false, heading = "核心模板%n")
-    MainTemplate mainTemplate;
+    MainTemplateTemp mainTemplate;
 
     @Override
     public void run() {
@@ -23,7 +20,7 @@ public class TestArgsGroupCommand implements Runnable {
     }
 
     @Data
-    static class MainTemplate {
+    static class MainTemplateCommandOld {
         @CommandLine.Option(names = {"-mainTemplate.a", "--mainTemplate.author"}, description = "作者", arity = "0..1", interactive = true, echo = true)
         private String author = "dongdongTest";
 
