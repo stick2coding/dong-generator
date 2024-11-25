@@ -30,11 +30,14 @@ public class Meta {
         @NoArgsConstructor
         @Data
         public static class FileInfo {
+            private String groupKey;
+            private String groupName;
+            private String condition;
+            private String type;
+            private List<FileInfo> files;
             private String inputPath;
             private String outputPath;
-            private String type;
             private String generateType;
-            private String condition;
         }
     }
 

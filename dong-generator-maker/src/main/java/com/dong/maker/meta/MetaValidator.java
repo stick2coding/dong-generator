@@ -88,6 +88,11 @@ public class MetaValidator {
             List<Meta.FileConfig.FileInfo> fileInfoList = fileConfig.getFiles();
             if (CollectionUtils.isNotEmpty(fileInfoList)){
                 for (Meta.FileConfig.FileInfo fileInfo : fileInfoList){
+                    //如果是文件组类型，则无需校验
+                    String fileType = fileInfo.getType();
+                    if (FileTypeEnum.GROUP.getValue().equals(fileType)){
+                        continue;
+                    }
                     //inputPath 必填
                     String inputPath = fileInfo.getInputPath();
                     if (StrUtil.isBlank(inputPath)){

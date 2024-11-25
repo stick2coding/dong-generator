@@ -24,22 +24,51 @@ public class MainGenerator {
 
         String inputPath;
         String outputPath;
-        //遍历取出所有配置项
+        // 遍历取出所有配置项
     <#list modelConfig.models as modelInfo>
         ${modelInfo.type} ${modelInfo.fieldName} = model.${modelInfo.fieldName};
     </#list>
-        // 遍历文件，首先查看文件是否有前置条件
+        // 遍历文件，首先查看文件是否有前置条件，首先判断是否是文件组，如果有标记文件组，则需要先判断组条件
     <#list fileConfig.files as fileInfo>
+        <#if fileInfo.groupKey??>
+        //再判断是否有前置条件
+        <#if fileInfo.condition??>
+        //如果前置存在，则遍历组内文件，否则不处理
+        if(${fileInfo.condition}){
+            <#list fileInfo.files as fileInfo>
+            inputPath = new File(inputRootPath, "${fileInfo.inputPath}").getAbsolutePath();
+            outputPath = new File(outputRootPath, "${fileInfo.outputPath}").getAbsolutePath();
+            <#if fileInfo.generateType == "static">
+            StaticGenerator.copyFilesByHutool(inputPath, outputPath);
+            <#else>
+            DynamicGenerator.doGenerate(inputPath, outputPath, model);
+            </#if>
+            </#list>
+        }
+        //如果前置条件不存在，则直接遍历组内文件
+        <#else>
+        <#list fileInfo.files as fileInfo>
+        inputPath = new File(inputRootPath, "${fileInfo.inputPath}").getAbsolutePath();
+        outputPath = new File(outputRootPath, "${fileInfo.outputPath}").getAbsolutePath();
+        <#if fileInfo.generateType == "static">
+        StaticGenerator.copyFilesByHutool(inputPath, outputPath);
+        <#else>
+        DynamicGenerator.doGenerate(inputPath, outputPath, model);
+        </#if>
+        </#list>
+        </#if>
+        <#else>
+        //不是文件组的直接进行前置判断
         //如果有前置，则进行判断
         <#if fileInfo.condition??>
         if(${fileInfo.condition}) {
             inputPath = new File(inputRootPath, "${fileInfo.inputPath}").getAbsolutePath();
             outputPath = new File(outputRootPath, "${fileInfo.outputPath}").getAbsolutePath();
             <#if fileInfo.generateType == "static">
-                StaticGenerator.copyFilesByHutool(inputPath, outputPath);
+            StaticGenerator.copyFilesByHutool(inputPath, outputPath);
             <#else>
-                DynamicGenerator.doGenerate(inputPath, outputPath, model);
-            </#if>
+            DynamicGenerator.doGenerate(inputPath, outputPath, model);
+        </#if>
         }
         <#else>
         //没有前置则正常执行
@@ -49,6 +78,7 @@ public class MainGenerator {
         StaticGenerator.copyFilesByHutool(inputPath, outputPath);
         <#else>
         DynamicGenerator.doGenerate(inputPath, outputPath, model);
+        </#if>
         </#if>
         </#if>
     </#list>
