@@ -15,7 +15,7 @@
 示例命令：
 
 ```text
-generator generate <#list modelConfig.models as modelInfo>-${modelInfo.abbr} </#list>
+generator generate <#list modelConfig.models as modelInfo><#if modelInfo.abbr??>-${modelInfo.abbr}<#else>--${modelInfo.fieldName}</#if> </#list>
 ```
 
 ## 参数说明
@@ -29,7 +29,7 @@ generator generate <#list modelConfig.models as modelInfo>-${modelInfo.abbr} </#
 
     默认值：${modelInfo.defaultValue?c}
 
-    缩写： -${modelInfo.abbr}
+    缩写： <#if modelInfo.abbr??>-${modelInfo.abbr}<#else>--${modelInfo.fieldName}</#if>
 
 
 </#list>
