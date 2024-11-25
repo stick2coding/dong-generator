@@ -13,9 +13,9 @@ public class FileGenerator {
 
     public static void main(String[] args) throws TemplateException, IOException {
         DataModel dataModel = new DataModel();
-        dataModel.setAuthor("test");
-        dataModel.setLoop(false);
-        dataModel.setOutputText("sum result:");
+//        dataModel.setAuthor("test");
+//        dataModel.setLoop(false);
+//        dataModel.setOutputText("sum result:");
         doGenerate(dataModel);
 
     }

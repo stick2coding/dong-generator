@@ -136,6 +136,11 @@ public class MetaValidator {
             List<Meta.ModelConfig.ModelInfo> modelInfoList = modelConfig.getModels();
             if (CollectionUtils.isNotEmpty(modelInfoList)){
                 for (Meta.ModelConfig.ModelInfo modelInfo : modelInfoList){
+                    //如果是分组，就不进行校验直接跳过
+                    String groupKey = modelInfo.getGroupKey();
+                    if(StrUtil.isNotEmpty(groupKey)){
+                        continue;
+                    }
                     // fieldName 输出路径默认值，必填
                     String fieldName = modelInfo.getFieldName();
                     if (StrUtil.isBlank(fieldName)){

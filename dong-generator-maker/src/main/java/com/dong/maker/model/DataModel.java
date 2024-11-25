@@ -14,12 +14,7 @@ public class DataModel {
     private boolean loop;
 
     /**
-     * 作者名称
+     * 核心模板
      */
-    private String author = "sunbin";
-
-    /**
-     * 输出信息
-     */
-    private String outputText = "sum =";
+    private MainTemplate mainTemplate;
 }

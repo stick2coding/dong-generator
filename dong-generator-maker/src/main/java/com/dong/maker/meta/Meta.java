@@ -49,6 +49,9 @@ public class Meta {
         @NoArgsConstructor
         @Data
         public static class ModelInfo {
+            private String groupKey;
+            private String groupName;
+            private List<ModelInfo> models;
             private String fieldName;
             private String type;
             private String description;
