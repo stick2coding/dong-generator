@@ -79,7 +79,7 @@ public class MetaValidator {
 
             //fileConfigType: 默认dir
             String fileConfigType = fileConfig.getType();
-            String defaultType = "dir";
+            String defaultType = FileTypeEnum.DIR.getValue();
             if (StrUtil.isEmpty(fileConfigType)){
                 fileConfig.setType(defaultType);
             }
@@ -105,9 +105,9 @@ public class MetaValidator {
                     if (StrUtil.isEmpty(type)){
                         String suffix = FileUtil.getSuffix(inputPath);
                         if (StrUtil.isBlank(suffix)){
-                            fileInfo.setType("dir");
+                            fileInfo.setType(FileTypeEnum.DIR.getValue());
                         }else {
-                            fileInfo.setType("file");
+                            fileInfo.setType(FileTypeEnum.FILE.getValue());
                         }
                     }
 
@@ -116,9 +116,9 @@ public class MetaValidator {
                     if (StrUtil.isEmpty(generateType)){
                         String suffix = FileUtil.getSuffix(inputPath);
                         if (StrUtil.equals(suffix, "ftl")){
-                            fileInfo.setGenerateType("dynamic");
+                            fileInfo.setGenerateType(FileGenerateTypeEnum.DYNAMIC.getValue());
                         }else {
-                            fileInfo.setGenerateType("static");
+                            fileInfo.setGenerateType(FileGenerateTypeEnum.STATIC.getValue());
                         }
                     }
                 }
@@ -140,7 +140,7 @@ public class MetaValidator {
                     // type 默认string
                     String type = modelInfo.getType();
                     if (StrUtil.isEmpty(type)){
-                        modelInfo.setType("string");
+                        modelInfo.setType(ModelTypeEnum.STRING.getValue());
                     }
                 }
             }
