@@ -1,5 +1,6 @@
 package com.dong.maker.template;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
@@ -16,7 +17,9 @@ import com.dong.maker.template.model.TemplateMakerFileConfig;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +46,7 @@ public class TemplateMakerV5 {
         List<TemplateMakerFileConfig.FileInfoConfigV2> fileInfoConfigList = new ArrayList<>();
         //同时对多个输入路径下的文件进行替换测试
         // 文件1
-        String inputFilePath1 = "src/main/java/com/yupi/springbootinit/common";
+        String inputFilePath1 = "src/main/java/com/yupi/springbootinit/aop";
         // 文件1 规则
         List<FileFilterConfig> fileFilterConfigList1 = new ArrayList<>();
         FileFilterConfig fileFilterConfig = new FileFilterConfig();
@@ -77,13 +80,13 @@ public class TemplateMakerV5 {
         String searchStr = "BaseResponse";
 
         // 分组信息
-        TemplateMakerFileConfig.FileGroupConfig fileGroupConfig = new TemplateMakerFileConfig.FileGroupConfig();
-        fileGroupConfig.setGroupName("BaseResponse");
-        fileGroupConfig.setGroupKey("testGroup");
-        fileGroupConfig.setCondition("conditionCommand");
-        templateMakerFileConfig.setFileGroupConfig(fileGroupConfig);
+//        TemplateMakerFileConfig.FileGroupConfig fileGroupConfig = new TemplateMakerFileConfig.FileGroupConfig();
+//        fileGroupConfig.setGroupName("BaseResponse");
+//        fileGroupConfig.setGroupKey("testGroup2");
+//        fileGroupConfig.setCondition("conditionCommand");
+//        templateMakerFileConfig.setFileGroupConfig(fileGroupConfig);
 
-        long id = makeTemplate(null, meta, originProjectPath, templateMakerFileConfig, modelInfo, searchStr);
+        long id = makeTemplate(1861428884266184704L, meta, originProjectPath, templateMakerFileConfig, modelInfo, searchStr);
         System.out.println(id);
     }
 
@@ -110,15 +113,58 @@ public class TemplateMakerV5 {
      * @return
      */
     private static List<Meta.FileConfig.FileInfo> distinctFiles(List<Meta.FileConfig.FileInfo> fileInfoList) {
+        //将fileInfoList内的配置分为有分组和无分组
+        //有分组的，如果分组相同，可以进行合并，不同分组同时保留
+        //创建新的文件配置列表，把合并后的列表添加进来
+        //将剩下没有分组的添加进来
+
+        //有分组，按分组划分，分组做为key，列表做为values
+        Map<String, List<Meta.FileConfig.FileInfo>> groupkeyFileInfoListMap = fileInfoList
+                .stream()
+                .filter(fileInfo -> StrUtil.isNotBlank(fileInfo.getGroupKey()))
+                .collect(Collectors.groupingBy(Meta.FileConfig.FileInfo::getGroupKey));
+
+        //同组内进行合并
+        Map<String, Meta.FileConfig.FileInfo> groupKeyFileInfoMergedMap = new HashMap<>();
+        for (Map.Entry<String, List<Meta.FileConfig.FileInfo>> entry : groupkeyFileInfoListMap.entrySet()) {
+            List<Meta.FileConfig.FileInfo> tempFileInfoList = entry.getValue();
+            //首先先取出所有fileInfo,由于分组中的文件放在fileInfo.files中，所以需要先取出来，然后再去重（去重同原来的方法）
+            List<Meta.FileConfig.FileInfo> groupDistinctFileInfoList = new ArrayList<>(tempFileInfoList.stream()
+                    .flatMap(fileInfo -> fileInfo.getFiles().stream())
+                    .collect(Collectors.toMap(Meta.FileConfig.FileInfo::getInputPath, o -> o, (e, r) -> r)).values() );
+
+            //去重后的files要放在新的fileInfo中
+            Meta.FileConfig.FileInfo newFileInfo = CollUtil.getLast(tempFileInfoList);
+            newFileInfo.setFiles(groupDistinctFileInfoList);
+            String groupKey = entry.getKey();
+            groupKeyFileInfoMergedMap.put(groupKey, newFileInfo);
+        }
+
+        //所有的同组列表合并后，就把全部取出来放在结果列表中
+        List<Meta.FileConfig.FileInfo> resultList = new ArrayList<>(groupKeyFileInfoMergedMap.values());
+
+        // 将没有分组的文件（一样要去重）先放在一起
+        List<Meta.FileConfig.FileInfo> noGroupFileInfoList = fileInfoList
+                .stream()
+                .filter(fileInfo -> StrUtil.isBlank(fileInfo.getGroupKey()))
+                .collect(Collectors.toList());
+        //去重
+        List<Meta.FileConfig.FileInfo> noGroupDistinctFileInfoList = new ArrayList<>(noGroupFileInfoList.stream().collect(
+                Collectors.toMap(Meta.FileConfig.FileInfo::getInputPath, o -> o, (e, r) -> r)
+        ).values());
+        //将没有分组去重后的放到结果中
+        resultList.addAll(noGroupDistinctFileInfoList);
+
         //先转成MAP,inputPath 做为 key ,原对象做为value, 然后遍历的同时判断map是否存在，存在就保留新的即可，最后用所有的value转成list即可
         // o -> o 就是 原对象做为参数，然后输出源对象
         // （e, r） -> r 就是判断逻辑，e就是exist，r是replacement,表示遇到重复的数据保留新的数据
-        List<Meta.FileConfig.FileInfo> newFileInfoList = new ArrayList<>(
-                fileInfoList.stream().collect(
-                        Collectors.toMap(Meta.FileConfig.FileInfo::getInputPath, o -> o, (e, r) -> r)
-                ).values()
-        );
-        return newFileInfoList;
+//        List<Meta.FileConfig.FileInfo> newFileInfoList = new ArrayList<>(
+//                fileInfoList.stream().collect(
+//                        Collectors.toMap(Meta.FileConfig.FileInfo::getInputPath, o -> o, (e, r) -> r)
+//                ).values()
+//        );
+//        return newFileInfoList;
+        return resultList;
     }
 
     /**
