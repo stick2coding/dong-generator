@@ -3,6 +3,7 @@
 target
 dong-generator.iml
 generated
+.temp
 
 ### Java template
 # Compiled class file
