@@ -54,9 +54,13 @@ public class Meta {
             private List<ModelInfo> models;
             private String fieldName;
             private String type;
+            private String condition;
             private String description;
             private Object defaultValue;
             private String abbr;
+
+            //如果存在groupKey，就需要增加一个参数字符串，用于调用下一级命令
+            private String allArgsStr;
         }
     }
 }

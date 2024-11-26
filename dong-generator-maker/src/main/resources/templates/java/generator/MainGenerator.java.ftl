@@ -35,8 +35,17 @@ public class MainGenerator {
         String inputPath;
         String outputPath;
         // 遍历取出所有配置项
+        System.out.println(model);
     <#list modelConfig.models as modelInfo>
+        <#--区分有无分组-->
+        <#if modelInfo.groupKey??>
+        <#--有分组就依次输出分组内的命令-->
+        <#list modelInfo.models as subModelInfo>
+        ${subModelInfo.type} ${subModelInfo.fieldName} = model.${modelInfo.groupKey}.${subModelInfo.fieldName};
+        </#list>
+        <#else>
         ${modelInfo.type} ${modelInfo.fieldName} = model.${modelInfo.fieldName};
+        </#if>
     </#list>
         // 遍历文件，首先查看文件是否有前置条件，首先判断是否是文件组，如果有标记文件组，则需要先判断组条件
     <#list fileConfig.files as fileInfo>

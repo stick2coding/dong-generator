@@ -15,12 +15,14 @@
 示例命令：
 
 ```text
-generator generate <#list modelConfig.models as modelInfo><#if modelInfo.abbr??>-${modelInfo.abbr}<#else>--${modelInfo.fieldName}</#if> </#list>
+generator generate <#list modelConfig.models as modelInfo><#if modelInfo.abbr??>-${modelInfo.abbr} --${modelInfo.fieldName}</#if></#list>
 ```
 
 ## 参数说明
 ```text
 <#list modelConfig.models as modelInfo>
+    <#if modelInfo.groupKey??>
+    <#else>
     ${modelInfo?index + 1}）${modelInfo.fieldName}
 
     类型：${modelInfo.type}
@@ -30,7 +32,7 @@ generator generate <#list modelConfig.models as modelInfo><#if modelInfo.abbr??>
     默认值：${modelInfo.defaultValue?c}
 
     缩写： <#if modelInfo.abbr??>-${modelInfo.abbr}<#else>--${modelInfo.fieldName}</#if>
-
+    </#if>
 
 </#list>
 ```

@@ -10,11 +10,11 @@ import java.io.IOException;
  */
 public class MainGeneratorNew extends GenerateTemplate{
 
-    @Override
-    protected String buildJar(Meta meta, String outputPath) {
-        System.out.println("不需要再生成jar!");
-        return null;
-    }
+//    @Override
+//    protected String buildJar(Meta meta, String outputPath) {
+//        System.out.println("不需要再生成jar!");
+//        return null;
+//    }
 
 
     @Override
