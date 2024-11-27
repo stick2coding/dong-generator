@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "name": "acm-template-pro-generator",
+    "description": "ACM 示例模板生成器"
+  },
+  "originProjectPath": "D:\\codingDevFile\\JavaLocalCode\\dong-generator\\dong-generator-demo-projects\\springboot-init-master",
+  "templateMakerFileConfig": {
+    "fileInfoConfigList": [
+      {
+        "filePath": "src/main/java/com/yupi/springbootinit/common"
+      }
+    ]
+  },
+  "templateMakerModelConfig": {
+    "modelInfoConfigList": [
+      {
+        "fieldName": "className",
+        "type": "String",
+        "defaultValue": true,
+        "replaceText": "BaseResponse"
+      }
+    ]
+  }
+}
