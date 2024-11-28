@@ -34,7 +34,7 @@ public class TemplateMakerModelConfig {
 
         private String description;
 
-        private String defaultValue;
+        private Object defaultValue;
 
         private String abbr;
 
@@ -55,7 +55,14 @@ public class TemplateMakerModelConfig {
 
         private String groupKey;
 
+        private String description;
+
+        /**
+         * 前置命令
+         */
         private String condition;
+
+        private String type;
     }
 
 }

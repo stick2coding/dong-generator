@@ -1,0 +1,21 @@
+{
+  "id": 2,
+  "templateMakerFileConfig": {
+    "fileInfoConfigList": [
+      {
+        "filePath": "src/main/resources/application.yml",
+        "condition": "needDocs"
+      }
+    ]
+  },
+  "templateMakerModelConfig": {
+    "modelInfoConfigList": [
+      {
+        "fieldName": "needDocs",
+        "type": "boolean",
+        "description": "是否开启接口文档功能",
+        "defaultValue": true
+      }
+    ]
+  }
+}

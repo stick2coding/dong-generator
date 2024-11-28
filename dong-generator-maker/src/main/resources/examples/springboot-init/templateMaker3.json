@@ -1,0 +1,24 @@
+{
+  "id": 2,
+  "templateMakerFileConfig": {
+    "fileInfoConfigList": [
+      {
+        "filePath": "src/main/java/com/yupi/springbootinit/config/CorsConfig.java",
+        "condition": "needCors"
+      }
+    ]
+  },
+  "templateMakerModelConfig": {
+    "modelInfoConfigList": [
+      {
+        "fieldName": "needCors",
+        "type": "boolean",
+        "description": "是否开启跨域功能",
+        "defaultValue": true
+      }
+    ]
+  },
+  "templateMakerOutputConfig": {
+    "removerGroupFilesFromRoot": false
+  }
+}

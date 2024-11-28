@@ -93,9 +93,4 @@ public class TemplateMakerV7Test {
         long id = TemplateMakerV7.makeTemplate(templateMakerConfig);
         System.out.println(id);
     }
-
-
-
-
-
 }

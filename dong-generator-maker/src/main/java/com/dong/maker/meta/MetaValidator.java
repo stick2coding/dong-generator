@@ -60,13 +60,13 @@ public class MetaValidator {
         Meta.FileConfig fileConfig = meta.getFileConfig();
         if(fileConfig != null){
             //sourceRootPath 必填
-            String sourceRootPath = fileConfig.getInputRootPath();
+            String sourceRootPath = fileConfig.getSourceRootPath();
             if (StrUtil.isBlank(sourceRootPath)){
                 throw new MetaException("sourceRootPath is required");
             }
             //inputRootPath: .source + sourceRootPath的最后一个层级路径
             String inputRootPath = fileConfig.getInputRootPath();
-            String defaultInputRootPath = ".source" + File.separator + FileUtil.getLastPathEle(Paths.get(inputRootPath)).getFileName().toString();
+            String defaultInputRootPath = ".source/" + FileUtil.getLastPathEle(Paths.get(sourceRootPath)).getFileName().toString();
             if (StrUtil.isEmpty(inputRootPath)){
                 fileConfig.setInputRootPath(defaultInputRootPath);
             }
@@ -97,7 +97,7 @@ public class MetaValidator {
                     //inputPath 必填
                     String inputPath = fileInfo.getInputPath();
                     if (StrUtil.isBlank(inputPath)){
-                        throw new MetaException("inputPath is required");
+                        throw new MetaException("inputPath is required" + fileInfo);
                     }
 
                     //outputPath: 默认等于inputPath

@@ -1,0 +1,26 @@
+{
+  "id": 2,
+  "templateMakerFileConfig": {
+    "fileInfoConfigList": [
+      {
+        "filePath": "src/main/resources/application.yml"
+      },
+      {
+        "filePath": "src/main/java/com/yupi/springbootinit/MainApplication.java"
+      },
+      {
+        "filePath": "pom.xml"
+      }
+    ]
+  },
+  "templateMakerModelConfig": {
+    "modelInfoConfigList": [
+      {
+        "fieldName": "needRedis",
+        "type": "boolean",
+        "description": "是否开启redis配置",
+        "defaultValue": true
+      }
+    ]
+  }
+}

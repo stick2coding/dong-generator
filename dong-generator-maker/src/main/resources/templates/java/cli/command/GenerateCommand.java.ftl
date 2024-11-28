@@ -11,15 +11,15 @@ import java.util.concurrent.Callable;
 
 <#--生成选项-->
 <#macro generateOption indent modelInfo>
-${indent}@CommandLine.Option(names = {<#if modelInfo.abbr??>"-${modelInfo.abbr}"</#if>, "--${modelInfo.fieldName}"}, description = <#if modelInfo.description??>"${modelInfo.description}"</#if>, arity = "0..1", interactive = true, echo = true)
+${indent}@CommandLine.Option(names = {<#if modelInfo.abbr??>"-${modelInfo.abbr},"</#if> "--${modelInfo.fieldName}"}, description = <#if modelInfo.description??>"${modelInfo.description}"</#if>, arity = "0..1", interactive = true, echo = true)
 ${indent}private ${modelInfo.type} ${modelInfo.fieldName}<#if modelInfo.defaultValue??> = ${modelInfo.defaultValue?c}</#if>;
 </#macro>
 
 <#--生成二级命令调用-->
 <#macro generateCommand indent modelInfo>
 ${indent}System.out.println("请输出${modelInfo.groupName}配置...");
-${indent}CommandLine commandLine = new CommandLine(${modelInfo.type}Command.class);
-${indent}commandLine.execute(${modelInfo.allArgsStr});
+${indent}CommandLine ${modelInfo.groupKey}CommandLine = new CommandLine(${modelInfo.type}Command.class);
+${indent}${modelInfo.groupKey}CommandLine.execute(${modelInfo.allArgsStr});
 </#macro>
 
 
@@ -69,6 +69,7 @@ public class GenerateCommand implements Callable<Integer> {
             <@generateCommand indent="            " modelInfo=modelInfo/>
         }
         </#if>
+        <@generateCommand indent="        " modelInfo=modelInfo/>
         </#if>
         </#list>
 

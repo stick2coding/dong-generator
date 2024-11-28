@@ -1,0 +1,33 @@
+{
+  "id": 2,
+  "templateMakerFileConfig": {
+    "fileGroupConfig": {
+      "groupKey": "post",
+      "groupName": "生成帖子文件组",
+      "condition": "needPost",
+      "type": "group"
+    },
+    "fileInfoConfigList": [
+      {
+        "filePath": "src/main",
+        "fileFilterConfigList": [
+          {
+            "range": "fileName",
+            "rule": "contains",
+            "value": "Post"
+          }
+        ]
+      }
+    ]
+  },
+  "templateMakerModelConfig": {
+    "modelInfoConfigList": [
+      {
+        "fieldName": "needPost",
+        "type": "boolean",
+        "description": "是否开启帖子生成功能",
+        "defaultValue": true
+      }
+    ]
+  }
+}

@@ -16,7 +16,7 @@ public class Main {
 //        CommandExecutor executor = new CommandExecutor();
 //        executor.doExecute(args);
 
-
+        // 每次新工程需要修改initMeta方法中的json文件路径后再执行
         MainGeneratorNew mainGeneratorNew = new MainGeneratorNew();
         mainGeneratorNew.doGenerate();
 

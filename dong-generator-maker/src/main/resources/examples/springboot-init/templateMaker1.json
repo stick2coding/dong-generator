@@ -1,0 +1,21 @@
+{
+  "id": 2,
+  "templateMakerFileConfig": {
+    "fileInfoConfigList": [
+      {
+        "filePath": ""
+      }
+    ]
+  },
+  "templateMakerModelConfig": {
+    "modelInfoConfigList": [
+      {
+        "fieldName": "basePackage",
+        "type": "String",
+        "description": "项目的基础包名",
+        "defaultValue": "com.dong",
+        "replaceText": "com.yupi"
+      }
+    ]
+  }
+}

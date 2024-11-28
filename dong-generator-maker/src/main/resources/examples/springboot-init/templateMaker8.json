@@ -1,0 +1,21 @@
+{
+  "id": 2,
+  "templateMakerFileConfig": {
+    "fileInfoConfigList": [
+      {
+        "filePath": "src/main/java/com/yupi/springbootinit/model/dto/post/PostEsDTO.java",
+        "condition": "needPost && needEs"
+      }
+    ]
+  },
+  "templateMakerModelConfig": {
+    "modelInfoConfigList": [
+      {
+        "fieldName": "needEs",
+        "type": "boolean",
+        "description": "是否开启es功能",
+        "defaultValue": true
+      }
+    ]
+  }
+}

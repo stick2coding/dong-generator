@@ -30,6 +30,9 @@ public class TemplateMakerFileConfig {
 
         private String filePath;
 
+        // 生成条件
+        private String condition;
+
         private List<FileFilterConfig> fileFilterConfigList;
     }
 
