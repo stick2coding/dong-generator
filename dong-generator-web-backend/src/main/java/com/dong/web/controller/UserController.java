@@ -6,7 +6,6 @@ import com.dong.web.common.BaseResponse;
 import com.dong.web.common.DeleteRequest;
 import com.dong.web.common.ErrorCode;
 import com.dong.web.common.ResultUtils;
-import com.dong.web.config.WxOpenConfig;
 import com.dong.web.constant.UserConstant;
 import com.dong.web.exception.BusinessException;
 import com.dong.web.exception.ThrowUtils;
@@ -24,28 +23,19 @@ import com.dong.web.service.UserService;
 import java.util.List;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
-import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
-import me.chanjar.weixin.common.bean.oauth2.WxOAuth2AccessToken;
-import me.chanjar.weixin.mp.api.WxMpService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.DigestUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static com.dong.web.service.impl.UserServiceImpl.SALT;
 
 /**
  * 用户接口
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
+ * @author sunbin
  * @from <a href="https://yupi.icu">编程导航知识星球</a>
  */
 @RestController
@@ -55,11 +45,6 @@ public class UserController {
 
     @Resource
     private UserService userService;
-
-    @Resource
-    private WxOpenConfig wxOpenConfig;
-
-    // region 登录相关
 
     /**
      * 用户注册

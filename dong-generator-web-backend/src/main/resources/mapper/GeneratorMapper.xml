@@ -31,4 +31,10 @@
         userId,createTime,updateTime,
         isDelete
     </sql>
+
+    <select id="listPostWithDelete" resultType="com.dong.web.model.entity.Generator">
+        select *
+        from generator
+        where updateTime >= #{minUpdateTime}
+    </select>
 </mapper>

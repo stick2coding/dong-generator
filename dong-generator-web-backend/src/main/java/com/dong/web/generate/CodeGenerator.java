@@ -15,7 +15,7 @@ import java.io.Writer;
 /**
  * 代码生成器
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
+ * @author sunbin
  * @from <a href="https://www.code-nav.cn">编程导航学习圈</a>
  */
 public class CodeGenerator {
@@ -29,10 +29,10 @@ public class CodeGenerator {
      */
     public static void main(String[] args) throws TemplateException, IOException {
         // 指定生成参数
-        String packageName = "com.yupi.web";
-        String dataName = "用户评论";
-        String dataKey = "userComment";
-        String upperDataKey = "UserComment";
+        String packageName = "com.dong.web";
+        String dataName = "生成器";
+        String dataKey = "generator";
+        String upperDataKey = "Generator";
 
         // 封装生成参数
         Map<String, Object> dataModel = new HashMap<>();
@@ -83,10 +83,10 @@ public class CodeGenerator {
         doGenerate(inputPath, outputPath, dataModel);
         System.out.println("生成 DTO 成功，文件路径：" + outputPath);
         // 生成 VO
-        inputPath = projectPath + File.separator + "src/main/resources/templates/model/TemplateVO.java.ftl";
-        outputPath = String.format("%s/generator/model/vo/%sVO.java", projectPath, upperDataKey);
-        doGenerate(inputPath, outputPath, dataModel);
-        System.out.println("生成 VO 成功，文件路径：" + outputPath);
+//        inputPath = projectPath + File.separator + "src/main/resources/templates/model/TemplateVO.java.ftl";
+//        outputPath = String.format("%s/generator/model/vo/%sVO.java", projectPath, upperDataKey);
+//        doGenerate(inputPath, outputPath, dataModel);
+//        System.out.println("生成 VO 成功，文件路径：" + outputPath);
     }
 
     /**

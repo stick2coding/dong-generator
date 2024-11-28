@@ -1,7 +1,10 @@
 package com.dong.web.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import generator.domain.Generator;
+import com.dong.web.model.entity.Generator;
+
+import java.util.Date;
+import java.util.List;
 
 /**
 * @author sunbin
@@ -10,6 +13,9 @@ import generator.domain.Generator;
 * @Entity generator.domain.Generator
 */
 public interface GeneratorMapper extends BaseMapper<Generator> {
+
+
+    List<Generator> listGeneratorWithDelete(Date minUpdateTime);
 
 }
 

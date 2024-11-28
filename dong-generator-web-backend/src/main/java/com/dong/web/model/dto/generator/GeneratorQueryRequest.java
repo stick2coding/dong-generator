@@ -1,20 +1,21 @@
-package com.dong.web.model.dto.post;
+package com.dong.web.model.dto.generator;
 
 import com.dong.web.common.PageRequest;
-import java.io.Serializable;
-import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serializable;
+import java.util.List;
+
 /**
- * 查询请求
+ * 查询生成器请求
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
+ * @author sunbin
+ * @from <a href="https://www.code-nav.cn">编程导航学习圈</a>
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class PostQueryRequest extends PageRequest implements Serializable {
+public class GeneratorQueryRequest extends PageRequest implements Serializable {
 
     /**
      * id
@@ -47,19 +48,9 @@ public class PostQueryRequest extends PageRequest implements Serializable {
     private List<String> tags;
 
     /**
-     * 至少有一个标签
-     */
-    private List<String> orTags;
-
-    /**
      * 创建用户 id
      */
     private Long userId;
-
-    /**
-     * 收藏用户 id
-     */
-    private Long favourUserId;
 
     private static final long serialVersionUID = 1L;
 }

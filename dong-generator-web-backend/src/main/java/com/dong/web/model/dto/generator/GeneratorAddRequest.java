@@ -1,17 +1,18 @@
-package com.dong.web.model.dto.post;
+package com.dong.web.model.dto.generator;
+
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.List;
-import lombok.Data;
 
 /**
- * 创建请求
+ * 创建生成器请求
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
+ * @author sunbin
+ * @from <a href="https://www.code-nav.cn">编程导航学习圈</a>
  */
 @Data
-public class PostAddRequest implements Serializable {
+public class GeneratorAddRequest implements Serializable {
 
     /**
      * 标题
