@@ -3,6 +3,7 @@ package com.dong.maker.generator.main;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ClassPathResource;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.ZipUtil;
 import com.dong.maker.generator.JarGenerator;
 import com.dong.maker.generator.ScriptGenerator;
 import com.dong.maker.generator.file.DynamicFileGenerator;
@@ -51,13 +52,25 @@ public abstract class GenerateTemplate {
     }
 
     /**
+     * 生成压缩包
+     * @param outputPath
+     * @return
+     */
+    protected String buildZip(String outputPath){
+        String zipPath = outputPath + ".zip";
+        ZipUtil.zip(outputPath, zipPath);
+        System.out.println("压缩完成。");
+        return zipPath;
+    }
+
+    /**
      * 生成精简包
      * @param outputPath
      * @param jarPath
      * @param shellScriptOutputFilePath
      * @param sourceCopyDestPath
      */
-    protected void buildDist(String outputPath, String jarPath, String shellScriptOutputFilePath, String sourceCopyDestPath) {
+    protected String buildDist(String outputPath, String jarPath, String shellScriptOutputFilePath, String sourceCopyDestPath) {
         String distOutputPath = outputPath + "-dist";
         //新建target包用于存放jar包
         String targetDistOutputPath = distOutputPath + File.separator + "target";
@@ -68,6 +81,8 @@ public abstract class GenerateTemplate {
         FileUtil.copy(shellScriptOutputFilePath, distOutputPath, true);
         //源文件
         FileUtil.copy(sourceCopyDestPath, distOutputPath, true);
+        System.out.println("精简包生成完成。");
+        return distOutputPath;
     }
 
     /**
@@ -79,6 +94,7 @@ public abstract class GenerateTemplate {
     protected String buileScript(String outputPath, String jarPath) {
         String shellScriptOutputFilePath = outputPath + File.separator + "generator.bat";
         ScriptGenerator.doGenerate(shellScriptOutputFilePath, jarPath);
+        System.out.println("脚本生成完成。");
         return shellScriptOutputFilePath;
     }
 

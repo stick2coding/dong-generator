@@ -5,6 +5,8 @@ dong-generator.iml
 generated
 .temp
 springboot-init-master
+node_modules
+dong-generator-web-backend/src/main/resources/application-local.yml
 
 ### Java template
 # Compiled class file
@@ -76,6 +78,7 @@ buildNumber.properties
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
 .idea/**/dbnavigator.xml
+
 
 # Gradle
 .idea/**/gradle.xml

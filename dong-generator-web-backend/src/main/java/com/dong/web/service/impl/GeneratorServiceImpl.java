@@ -30,7 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
- * 帖子服务实现
+ * 生成器服务实现
  *
  * @author sunbin
  * @from <a href="https://yupi.icu">编程导航知识星球</a>

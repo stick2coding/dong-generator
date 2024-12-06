@@ -2,6 +2,7 @@ package com.dong.maker;
 
 import com.dong.maker.cli.CommandExecutor;
 import com.dong.maker.generator.main.MainGeneratorNew;
+import com.dong.maker.generator.main.ZipGeneratorNew;
 import freemarker.template.TemplateException;
 
 import java.io.IOException;
@@ -17,8 +18,11 @@ public class Main {
 //        executor.doExecute(args);
 
         // 每次新工程需要修改initMeta方法中的json文件路径后再执行
-        MainGeneratorNew mainGeneratorNew = new MainGeneratorNew();
-        mainGeneratorNew.doGenerate();
+//        MainGeneratorNew mainGeneratorNew = new MainGeneratorNew();
+//        mainGeneratorNew.doGenerate();
+
+        ZipGeneratorNew zipGeneratorNew = new ZipGeneratorNew();
+        zipGeneratorNew.doGenerate();
 
     }
 }

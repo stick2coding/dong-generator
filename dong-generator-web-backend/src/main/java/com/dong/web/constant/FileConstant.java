@@ -12,5 +12,5 @@ public interface FileConstant {
      * COS 访问地址
      * todo 需替换配置
      */
-    String COS_HOST = "https://yupi.icu";
+    String COS_HOST = "https://dong-1332760876.cos.ap-guangzhou.myqcloud.com";
 }
