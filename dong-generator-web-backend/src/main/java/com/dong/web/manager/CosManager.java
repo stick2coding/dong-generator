@@ -7,7 +7,13 @@ import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
 import com.dong.web.config.CosClientConfig;
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+
+import com.qcloud.cos.transfer.Download;
+import com.qcloud.cos.transfer.TransferManager;
 import org.springframework.stereotype.Component;
 
 /**
@@ -24,6 +30,18 @@ public class CosManager {
 
     @Resource
     private COSClient cosClient;
+
+    // 复用这个对象
+    private TransferManager transferManager;
+
+    // bean加载完成后执行
+    @PostConstruct
+    public void init() {
+        //线程池
+        System.out.println("bean initialized");
+        ExecutorService threadPool = Executors.newFixedThreadPool(10);
+        transferManager = new TransferManager(cosClient, threadPool);
+    }
 
     /**
      * 上传对象
@@ -60,4 +78,18 @@ public class CosManager {
         GetObjectRequest getObjectRequest = new GetObjectRequest(cosClientConfig.getBucket(), key);
         return cosClient.getObject(getObjectRequest);
     }
+
+    public Download download(String key, String localFilePath) throws InterruptedException {
+        // 先在路径打开文件
+        File downloadFile = new File(localFilePath);
+        // 创建cos请求对象
+        GetObjectRequest getObjectRequest = new GetObjectRequest(cosClientConfig.getBucket(), key);
+        // 下载
+        Download download = transferManager.download(getObjectRequest, downloadFile);
+        //等待
+        download.waitForCompletion();
+        return download;
+    }
+
+
 }

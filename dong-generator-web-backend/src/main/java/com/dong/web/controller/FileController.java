@@ -93,7 +93,7 @@ public class FileController {
             // 处理下载到的流
             byte[] bytes = IOUtils.toByteArray(cosObjectInputStream);
             // 设置响应头
-            response.setContentType("application/octet-stream;charset=UTF-8");
+            response.setContentType("application/octet-stream");
             response.setHeader("Content-Disposition", "attachment; filename=" + filePath);
 
             //写入响应

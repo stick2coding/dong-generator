@@ -11,7 +11,7 @@ import java.util.concurrent.Callable;
 
 <#--生成选项-->
 <#macro generateOption indent modelInfo>
-${indent}@CommandLine.Option(names = {<#if modelInfo.abbr??>"-${modelInfo.abbr},"</#if> "--${modelInfo.fieldName}"}, description = <#if modelInfo.description??>"${modelInfo.description}"</#if>, arity = "0..1", interactive = true, echo = true)
+${indent}@CommandLine.Option(names = {<#if modelInfo.abbr??>"-${modelInfo.abbr}",</#if> "--${modelInfo.fieldName}"}, description = <#if modelInfo.description??>"${modelInfo.description}"</#if>, arity = "0..1", interactive = true, echo = true)
 ${indent}private ${modelInfo.type} ${modelInfo.fieldName}<#if modelInfo.defaultValue??> = ${modelInfo.defaultValue?c}</#if>;
 </#macro>
 
