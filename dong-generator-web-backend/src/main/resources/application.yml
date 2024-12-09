@@ -74,3 +74,6 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.dong.web.controller
+# 本地业务配置
+generator:
+  downloadCacheEnable: true

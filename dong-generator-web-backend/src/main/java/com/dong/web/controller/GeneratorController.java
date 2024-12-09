@@ -1,11 +1,14 @@
 package com.dong.web.controller;
 
+import cn.hutool.core.codec.Base64Encoder;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ZipUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dong.maker.generator.main.GenerateTemplate;
 import com.dong.maker.generator.main.ZipGeneratorNew;
@@ -16,9 +19,11 @@ import com.dong.web.common.BaseResponse;
 import com.dong.web.common.DeleteRequest;
 import com.dong.web.common.ErrorCode;
 import com.dong.web.common.ResultUtils;
+import com.dong.web.config.GeneratorConfig;
 import com.dong.web.constant.UserConstant;
 import com.dong.web.exception.BusinessException;
 import com.dong.web.exception.ThrowUtils;
+import com.dong.web.manager.CacheManager;
 import com.dong.web.manager.CosManager;
 import com.dong.web.model.dto.generator.*;
 import com.dong.web.model.entity.Generator;
@@ -30,12 +35,11 @@ import com.dong.web.service.UserService;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -46,6 +50,9 @@ import com.qcloud.cos.utils.IOUtils;
 import freemarker.template.TemplateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -71,6 +78,15 @@ public class GeneratorController {
 
     @Resource
     private CosManager cosManager;
+
+    @Resource
+    private GeneratorConfig generatorConfig;
+
+    @Resource
+    StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    CacheManager cacheManager;
 
     @PostMapping("/make")
     public void makeGenerator(@RequestBody GeneratorMakeRequest generatorMakeRequest,
@@ -278,6 +294,42 @@ public class GeneratorController {
         return ResultUtils.success(generatorService.getGeneratorVOPage(generatorPage, request));
     }
 
+
+    @PostMapping("/list/page/vo/fast")
+    public BaseResponse<Page<GeneratorVO>> listGeneratorVOByPageFast(@RequestBody GeneratorQueryRequest generatorQueryRequest,
+                                                                 HttpServletRequest request) {
+        long current = generatorQueryRequest.getCurrent();
+        long size = generatorQueryRequest.getPageSize();
+        //优先从缓存查询
+        // 先拿到当前页的缓存key
+        String cacheKey = getPageCacheKey(generatorQueryRequest);
+//        ValueOperations<String,String> valueOperations = stringRedisTemplate.opsForValue();
+//        String cacheValue = valueOperations.get(cacheKey);
+        String cacheValue = cacheManager.get(cacheKey);
+        if(StrUtil.isNotBlank(cacheValue)){
+            // 命中，直接返回
+            Page<GeneratorVO> generatorVOPage = JSONUtil.toBean(cacheValue, new TypeReference<Page<GeneratorVO>>(){}, false);
+            return ResultUtils.success(generatorVOPage);
+        }
+        // 缓存没有就查数据库
+        // 限制爬虫
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+        QueryWrapper<Generator> queryWrapper = generatorService.getQueryWrapper(generatorQueryRequest);
+        //如果前端不需要展示，那么查询的时候也不需要查询就可以了
+        queryWrapper.select("id", "name", "description", "basePackage", "version", "author", "picture", "distPath", "status", "userId", "createTime", "updateTime");
+        Page<Generator> generatorPage = generatorService.page(new Page<>(current, size), queryWrapper);
+        Page<GeneratorVO> generatorVOPage = generatorService.getGeneratorVOPage(generatorPage, request);
+        // 这里前端并不需要展示这两个大字段，所以可以省略掉
+//        generatorVOPage.getRecords().forEach(generatorVO -> {
+//            generatorVO.setModelConfig(null);
+//            generatorVO.setFileConfig(null);
+//        });
+        // 放入缓存
+        //valueOperations.set(cacheKey, JSONUtil.toJsonStr(generatorVOPage), 100, TimeUnit.MINUTES);
+        cacheManager.put(cacheKey, JSONUtil.toJsonStr(generatorVOPage));
+        return ResultUtils.success(generatorVOPage);
+    }
+
     /**
      * 分页获取当前生成器创建的资源列表
      *
@@ -357,20 +409,44 @@ public class GeneratorController {
 
         // 日志
         log.info("用户 {} 下载了 {}", loginUser.getUserName(), filePath);
+        // 设置响应头
+        response.setContentType("application/octet-stream");
+        response.setHeader("Content-Disposition", "attachment; filename=" + filePath);
+
+        //先找本地缓存
+        String cacheFilePath = getCacheFilePath(id, filePath);
+        if (FileUtil.exist(cacheFilePath)){
+            Files.copy(Paths.get(cacheFilePath), response.getOutputStream());
+            return;
+        }
+        FileUtil.touch(new File(cacheFilePath));
 
         // 下载
         COSObjectInputStream cosObjectInputStream = null;
         try {
+            // 使用spring自带的工具查看执行耗时
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
             COSObject cosObject = cosManager.getObject(filePath);
             cosObjectInputStream = cosObject.getObjectContent();
             // 处理拿到的流
             byte[] bytes = IOUtils.toByteArray(cosObjectInputStream);
-            // 设置响应头
-            response.setContentType("application/octet-stream");
-            response.setHeader("Content-Disposition", "attachment; filename=" + filePath);
+            stopWatch.stop();
+            stopWatch.getTotalTimeMillis();
+
+            //如果开启了下载后缓存到本地的开关，就写入本地
+            if(generatorConfig.downloadCacheEnable){
+                //todo 这里要注意，实际环境中，有几点注意。
+                // 1、能够自动判断哪些需要缓存；
+                // 2、支持手动清理缓存或定时清理缓存（有清理规则）；
+                // 3、保证一致性，如果文件重新上传，应该也要更新缓存，或者如果生成器发生更新，就自动删除缓存。
+                FileUtil.writeBytes(bytes, cacheFilePath);
+            }
+
             // 写入响应
             response.getOutputStream().write(bytes);
             response.getOutputStream().flush();
+
         } catch (Exception e){
             log.error("file download error, filePath = " + filePath, e);
         } finally {
@@ -379,6 +455,21 @@ public class GeneratorController {
             }
         }
     }
+
+    /**
+     * 获取缓存文件路径
+     *
+     * @param id
+     * @param distPath
+     * @return
+     */
+    public String getCacheFilePath(long id, String distPath) {
+        String projectPath = System.getProperty("user.dir");
+        String tempDirPath = String.format("%s/.temp/cache/%s", projectPath, id);
+        String zipFilePath = String.format("%s/%s", tempDirPath, distPath);
+        return zipFilePath;
+    }
+
 
     @PostMapping("/use")
     public void useGenerator(@RequestBody GeneratorUseRequest generatorUseRequest,
@@ -412,7 +503,17 @@ public class GeneratorController {
 
         // 下载
         try {
-            cosManager.download(distPath, zipFilePath);
+            //先寻找缓存中是否存在
+            String cacheFilePath = getCacheFilePath(generator.getId(), distPath);
+            if (FileUtil.exist(cacheFilePath)){
+                FileUtil.copy(cacheFilePath, zipFilePath, true);
+            }else {
+                cosManager.download(distPath, zipFilePath);
+                //当本地缓存中不存在，就下载到本地缓存文件中，但是开启之后文件可能会越来越多，占用空间
+                if(generatorConfig.downloadCacheEnable){
+                    FileUtil.copy(zipFilePath,cacheFilePath , true);
+                }
+            }
         } catch (InterruptedException e) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "下载文件失败");
         }
@@ -497,5 +598,19 @@ public class GeneratorController {
             System.out.println("delete temp file");
         });
     }
+
+
+    /**
+     * 获取分页缓存 key
+     * @param generatorQueryRequest
+     * @return
+     */
+    private static String getPageCacheKey(GeneratorQueryRequest generatorQueryRequest) {
+        String jsonStr = JSONUtil.toJsonStr(generatorQueryRequest);
+        String base64 = Base64Encoder.encode(jsonStr);
+        String key = "generator:page:" + base64;
+        return key;
+    }
+
 
 }
