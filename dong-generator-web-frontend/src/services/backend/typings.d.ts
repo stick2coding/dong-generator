@@ -127,10 +127,22 @@ declare namespace API {
   };
 
   type GeneratorEditRequest = {
-    content?: string;
+    author?: string;
+    basePackage?: string;
+    description?: string;
+    distPath?: string;
+    fileConfig?: FileConfig;
     id?: number;
+    modelConfig?: ModelConfig;
+    name?: string;
+    picture?: string;
     tags?: string[];
-    title?: string;
+    version?: string;
+  };
+
+  type GeneratorMakeRequest = {
+    meta?: Meta;
+    zipFilePath?: string;
   };
 
   type GeneratorQueryRequest = {
@@ -160,6 +172,11 @@ declare namespace API {
     status?: number;
     tags?: string[];
     version?: string;
+  };
+
+  type GeneratorUseRequest = {
+    dataModel?: Record<string, any>;
+    id?: string;
   };
 
   type GeneratorVO = {
@@ -204,6 +221,17 @@ declare namespace API {
     userName?: string;
     userProfile?: string;
     userRole?: string;
+  };
+
+  type Meta = {
+    author?: string;
+    basePackage?: string;
+    createTime?: string;
+    description?: string;
+    fileConfig?: FileConfig;
+    modelConfig?: ModelConfig;
+    name?: string;
+    version?: string;
   };
 
   type ModelConfig = {

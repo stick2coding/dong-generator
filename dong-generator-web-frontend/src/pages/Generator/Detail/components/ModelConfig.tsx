@@ -40,6 +40,11 @@ const ModelConfig: React.FC<Props> = (props) => {
                 children: <p>{model.groupName}</p>,
               },
               {
+                key: 'description',
+                label: '描述',
+                children: <p>{model.description}</p>,
+              },
+              {
                 key: 'condition',
                 label: '条件',
                 children: <p>{model.condition}</p>,

@@ -1,6 +1,6 @@
 package com.dong.web.model.dto.generator;
 
-import com.dong.web.meta.Meta;
+import com.dong.maker.meta.Meta;
 import lombok.Data;
 
 import java.io.Serializable;

@@ -1,10 +1,16 @@
 package com.dong.web.controller;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ZipUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dong.maker.generator.main.GenerateTemplate;
+import com.dong.maker.generator.main.ZipGeneratorNew;
+import com.dong.maker.meta.Meta;
+import com.dong.maker.meta.MetaValidator;
 import com.dong.web.annotation.AuthCheck;
 import com.dong.web.common.BaseResponse;
 import com.dong.web.common.DeleteRequest;
@@ -23,8 +29,10 @@ import com.dong.web.service.UserService;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -35,6 +43,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.qcloud.cos.model.COSObject;
 import com.qcloud.cos.model.COSObjectInputStream;
 import com.qcloud.cos.utils.IOUtils;
+import freemarker.template.TemplateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,6 +72,70 @@ public class GeneratorController {
     @Resource
     private CosManager cosManager;
 
+    @PostMapping("/make")
+    public void makeGenerator(@RequestBody GeneratorMakeRequest generatorMakeRequest,
+                              HttpServletRequest request,
+                              HttpServletResponse response) throws IOException {
+        Meta meta = generatorMakeRequest.getMeta();
+        // 拿到路径
+        String zipFilePath = generatorMakeRequest.getZipFilePath();
+        if (StrUtil.isBlank(zipFilePath)){
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "路径不存在！");
+        }
+
+        //定义一个空间来存储临时文件
+        String projectPath = System.getProperty("user.dir");
+        // 随机ID
+        String id = IdUtil.getSnowflakeNextId() + RandomUtil.randomString(6);
+        //创建临时空间
+        String tempDirPath = String.format("%s/.temp/make/%s", projectPath, id);
+        //新建文件来保存下载的内容
+        String localZipPath = tempDirPath + "/project.zip";
+        if (!FileUtil.exist(localZipPath)){
+            FileUtil.touch(localZipPath);
+        }
+        // 下载
+        try {
+            cosManager.download(zipFilePath, localZipPath);
+        } catch (InterruptedException e) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "下载失败！");
+        }
+        // 解压后目录
+        File unzipDistDir = ZipUtil.unzip(localZipPath);
+
+        String sourceRootPath = unzipDistDir.getAbsolutePath();
+        meta.getFileConfig().setSourceRootPath(sourceRootPath);
+        //校验
+        MetaValidator.doValidateAndFill(meta);
+        System.out.println("校验后的meta文件：" + meta);
+
+        //指定输出路径
+        String outputPath = String.format("%s/generated/%s", tempDirPath, meta.getName());
+
+        // 调用maker方法生成
+        GenerateTemplate generateTemplate = new ZipGeneratorNew();
+        try {
+            generateTemplate.doGenerate(meta, outputPath);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "生成失败！");
+        }
+
+        // 生成的文件有三类，一个是全量包，一个精简包（-dist）,一个压缩包（-dist.zip）下载生成的文件
+        String suffix = "-dist.zip";
+        String zipFilename = meta.getName() + suffix;
+        String distZipFilePath = outputPath + suffix;
+
+        response.setContentType("application/octet-stream");
+        response.setHeader("Content-Disposition", "attachment; filename=" + zipFilename);
+        Files.copy(Paths.get(distZipFilePath), response.getOutputStream());
+
+        //清理文件
+        CompletableFuture.runAsync(() -> {
+            //FileUtil.del(tempDirPath);
+        });
+    }
+
     /**
      * 创建
      *
@@ -81,6 +154,11 @@ public class GeneratorController {
         if (tags != null) {
             generator.setTags(JSONUtil.toJsonStr(tags));
         }
+        Meta.FileConfig fileConfig = generatorAddRequest.getFileConfig();
+        generator.setFileConfig(JSONUtil.toJsonStr(fileConfig));
+        Meta.ModelConfig modelConfig = generatorAddRequest.getModelConfig();
+        generator.setModelConfig(JSONUtil.toJsonStr(modelConfig));
+        // 参数校验
         generatorService.validGenerator(generator, true);
         User loginUser = userService.getLoginUser(request);
         generator.setUserId(loginUser.getId());
@@ -133,6 +211,10 @@ public class GeneratorController {
         if (tags != null) {
             generator.setTags(JSONUtil.toJsonStr(tags));
         }
+        Meta.FileConfig fileConfig = generatorUpdateRequest.getFileConfig();
+        generator.setFileConfig(JSONUtil.toJsonStr(fileConfig));
+        Meta.ModelConfig modelConfig = generatorUpdateRequest.getModelConfig();
+        generator.setModelConfig(JSONUtil.toJsonStr(modelConfig));
         // 参数校验
         generatorService.validGenerator(generator, false);
         long id = generatorUpdateRequest.getId();
@@ -238,6 +320,10 @@ public class GeneratorController {
         if (tags != null) {
             generator.setTags(JSONUtil.toJsonStr(tags));
         }
+        Meta.FileConfig fileConfig = generatorEditRequest.getFileConfig();
+        generator.setFileConfig(JSONUtil.toJsonStr(fileConfig));
+        Meta.ModelConfig modelConfig = generatorEditRequest.getModelConfig();
+        generator.setModelConfig(JSONUtil.toJsonStr(modelConfig));
         // 参数校验
         generatorService.validGenerator(generator, false);
         User loginUser = userService.getLoginUser(request);
@@ -336,10 +422,15 @@ public class GeneratorController {
 
         // 根据参数中的datamode.json文件写入到解压目录内
         String jsonStr = JSONUtil.toJsonStr(generatorUseRequest.getDataModel());
+        System.out.println("dateModel参数：" + jsonStr);
         String dataModelFilePath = tempDirPath + "/datamodel.json";
+        if (!FileUtil.exist(dataModelFilePath)){
+            FileUtil.touch(dataModelFilePath);
+        }
         FileUtil.writeUtf8String(jsonStr, dataModelFilePath);
 
         // 查找脚本（遍历文件两个层级，找到第一个文件名为generator的文件，没有找到就抛出异常）
+        System.out.println("开始查找脚本文件");
         File scriptFile = FileUtil.loopFiles(unZipFileDir, 2, null).stream()
                 .filter(file -> file.isFile() && "generator.bat".equals(file.getName()))
                 .findFirst()
@@ -356,6 +447,7 @@ public class GeneratorController {
         // 命令组装
         String scriptAbsolutePath = scriptFile.getAbsolutePath().replace("\\", "/");
         String[] command = new String[]{scriptAbsolutePath, "json-generate", "--file=" + dataModelFilePath};
+        System.out.println("命令组装完成：" + Arrays.toString(command));
 
         // 找到脚本所在目录
         File scriptDir = scriptFile.getParentFile();
@@ -401,7 +493,7 @@ public class GeneratorController {
 
         //清理文件
         CompletableFuture.runAsync(()->{
-            FileUtil.del(tempDirPath);
+            //FileUtil.del(tempDirPath);
             System.out.println("delete temp file");
         });
     }
