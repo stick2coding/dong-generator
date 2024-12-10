@@ -10,5 +10,7 @@ public class GeneratorConfig {
 
     public boolean downloadCacheEnable;
 
+    public boolean indexDataCacheEnable;
+
 
 }

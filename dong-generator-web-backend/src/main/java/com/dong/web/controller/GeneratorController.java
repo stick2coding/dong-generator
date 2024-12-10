@@ -141,6 +141,7 @@ public class GeneratorController {
         String suffix = "-dist.zip";
         String zipFilename = meta.getName() + suffix;
         String distZipFilePath = outputPath + suffix;
+        System.out.println("distZipFilePath:" + distZipFilePath);
 
         response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition", "attachment; filename=" + zipFilename);
@@ -300,17 +301,21 @@ public class GeneratorController {
                                                                  HttpServletRequest request) {
         long current = generatorQueryRequest.getCurrent();
         long size = generatorQueryRequest.getPageSize();
-        //优先从缓存查询
-        // 先拿到当前页的缓存key
-        String cacheKey = getPageCacheKey(generatorQueryRequest);
+        // 判断是否开启数据缓存
+        String cacheKey = CacheManager.getPageCacheKey(generatorQueryRequest);
+        if (generatorConfig.indexDataCacheEnable){
+            //优先从缓存查询
+            // 先拿到当前页的缓存key
 //        ValueOperations<String,String> valueOperations = stringRedisTemplate.opsForValue();
 //        String cacheValue = valueOperations.get(cacheKey);
-        String cacheValue = cacheManager.get(cacheKey);
-        if(StrUtil.isNotBlank(cacheValue)){
-            // 命中，直接返回
-            Page<GeneratorVO> generatorVOPage = JSONUtil.toBean(cacheValue, new TypeReference<Page<GeneratorVO>>(){}, false);
-            return ResultUtils.success(generatorVOPage);
+            String cacheValue = cacheManager.get(cacheKey);
+            if(StrUtil.isNotBlank(cacheValue)){
+                // 命中，直接返回
+                Page<GeneratorVO> generatorVOPage = JSONUtil.toBean(cacheValue, new TypeReference<Page<GeneratorVO>>(){}, false);
+                return ResultUtils.success(generatorVOPage);
+            }
         }
+
         // 缓存没有就查数据库
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
@@ -326,7 +331,10 @@ public class GeneratorController {
 //        });
         // 放入缓存
         //valueOperations.set(cacheKey, JSONUtil.toJsonStr(generatorVOPage), 100, TimeUnit.MINUTES);
-        cacheManager.put(cacheKey, JSONUtil.toJsonStr(generatorVOPage));
+        if (generatorConfig.indexDataCacheEnable){
+            cacheManager.put(cacheKey, JSONUtil.toJsonStr(generatorVOPage), 5L);
+        }
+
         return ResultUtils.success(generatorVOPage);
     }
 
@@ -392,7 +400,7 @@ public class GeneratorController {
     }
 
     @GetMapping("/download")
-    public void downloadGeneratorById(long id, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void downloadGeneratorById(long id, HttpServletRequest request, HttpServletResponse response) throws IOException, InterruptedException {
         if (id <= 0){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -434,18 +442,19 @@ public class GeneratorController {
             stopWatch.stop();
             stopWatch.getTotalTimeMillis();
 
+            // 写入响应
+            response.getOutputStream().write(bytes);
+            response.getOutputStream().flush();
+
             //如果开启了下载后缓存到本地的开关，就写入本地
             if(generatorConfig.downloadCacheEnable){
                 //todo 这里要注意，实际环境中，有几点注意。
                 // 1、能够自动判断哪些需要缓存；
                 // 2、支持手动清理缓存或定时清理缓存（有清理规则）；
                 // 3、保证一致性，如果文件重新上传，应该也要更新缓存，或者如果生成器发生更新，就自动删除缓存。
-                FileUtil.writeBytes(bytes, cacheFilePath);
+                //这里写入本地的文件一直是空的，需要修改
+                cosManager.download(filePath, cacheFilePath);
             }
-
-            // 写入响应
-            response.getOutputStream().write(bytes);
-            response.getOutputStream().flush();
 
         } catch (Exception e){
             log.error("file download error, filePath = " + filePath, e);
@@ -453,6 +462,8 @@ public class GeneratorController {
             if (cosObjectInputStream != null){
                 cosObjectInputStream.close();
             }
+
+
         }
     }
 
@@ -600,17 +611,7 @@ public class GeneratorController {
     }
 
 
-    /**
-     * 获取分页缓存 key
-     * @param generatorQueryRequest
-     * @return
-     */
-    private static String getPageCacheKey(GeneratorQueryRequest generatorQueryRequest) {
-        String jsonStr = JSONUtil.toJsonStr(generatorQueryRequest);
-        String base64 = Base64Encoder.encode(jsonStr);
-        String key = "generator:page:" + base64;
-        return key;
-    }
+
 
 
 }
